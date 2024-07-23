@@ -1,0 +1,19 @@
+###
+POST http://localhost:8080/subscriber
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "test.com"
+}
+
+###
+POST http://localhost:8080/upload HTTP/1.1
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="file"; filename="test.csv"
+
+< C:\test\test.csv
+--boundary

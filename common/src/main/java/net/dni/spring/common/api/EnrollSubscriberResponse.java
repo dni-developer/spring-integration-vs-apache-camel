@@ -1,13 +1,14 @@
 package net.dni.spring.common.api;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import net.dni.spring.common.entity.Subscriber;
 
+@AllArgsConstructor
 @NoArgsConstructor
 @Data
 public class EnrollSubscriberResponse {
 
-    private Subscriber subscriber;
+    private Long subscriberId;
 
 }

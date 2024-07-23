@@ -8,14 +8,12 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity
 @Table
-public class Subscriber {
+public class RequestEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private Long id;
 
-    private String firstName;
-    private String lastName;
-    private String email;
+    private String content;
 
 }

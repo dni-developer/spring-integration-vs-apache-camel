@@ -1,6 +1,5 @@
 package net.dni.spring.camel.util;
 
-import net.dni.spring.common.api.BadRequestResponse;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.springframework.http.HttpStatus;
@@ -12,7 +11,7 @@ public class ProcessorUtil {
         //hide util constructor
     }
 
-    public static void convertBodyToMalformedRequestBodyResponse(Exchange exchange) {
+    public static void convertBodyToMalformedRequestBodyJsonResponse(Exchange exchange) {
         Throwable cause = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, Throwable.class);
         Message msg = exchange.getMessage();
         msg.setHeader(Exchange.CONTENT_TYPE, MediaType.APPLICATION_JSON);
