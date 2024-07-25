@@ -3,6 +3,7 @@ package net.dni.spring.camel.router;
 import net.dni.spring.camel.exception.ValidationException;
 import net.dni.spring.camel.exception.ValidationExceptionResponseHandler;
 import net.dni.spring.camel.validator.EnrollSubscriberRequestValidator;
+import net.dni.spring.common.ValidateRule;
 import net.dni.spring.common.api.EnrollSubscriberRequest;
 import net.dni.spring.common.api.EnrollSubscriberResponse;
 import net.dni.spring.common.entity.SubscriberEntity;
@@ -24,8 +25,14 @@ import org.springframework.web.multipart.support.StandardMultipartHttpServletReq
 @Component
 public class SubscriberCamelRouter extends RouteBuilder {
 
-    @Value("${upload.file.directory}")
-    public String uploadFileDirectory;
+    @Value("${subscriber.file.input.directory}")
+    public String subscriberFileInputDirectory;
+
+    @Value("${subscriber.file.output.directory}")
+    public String subscriberFileOutputDirectory;
+
+    @Value("${subscriber.file.archive.directory}")
+    public String subscriberFileArchiveDirectory;
 
     @Override
     public void configure() {
@@ -76,12 +83,11 @@ public class SubscriberCamelRouter extends RouteBuilder {
                     exchange.getMessage().setBody(resource);
                 })
             .log("${id} ${body}")
-            .to("file:" + uploadFileDirectory);
+            .to("file:" + subscriberFileInputDirectory);
 
-
-        from("file:" + uploadFileDirectory)
+        from("file:" + subscriberFileInputDirectory + "?move=" + subscriberFileArchiveDirectory)
             .id("processEnrollSubscriberRequestCsv")
-            .log("${id} ${body}")
+            .log("${id} pick: ${file:name}, size: ${file:size}")
             .doTry()
                 .unmarshal(new BindyCsvDataFormat(EnrollSubscriberRequest.class))
             .doCatch(IllegalArgumentException.class)
@@ -90,15 +96,27 @@ public class SubscriberCamelRouter extends RouteBuilder {
             .end()
             .split().body()
                 .streaming()
-                .to("direct:processEnrollSubscriberRequest");
+                .to("direct:processEnrollSubscriberRequest")
+                .marshal(new BindyCsvDataFormat(EnrollSubscriberResponse.class))
+                .to("file:" + subscriberFileOutputDirectory + "?fileExist=Append")
+            .end()
+            .log("${id} finish: ${file:name}, size: ${file:size}")
+            .end();
 
         from("direct:processEnrollSubscriberRequest")
             .id("processEnrollSubscriber")
             .log("${id} ${body}")
             .inputTypeWithValidate(EnrollSubscriberRequest.class)
+            .multicast()
+                .parallelProcessing()
+                .bean(ValidateRule.class, "validateRule1")
+                .bean(ValidateRule.class, "validateRule2")
+                .bean(ValidateRule.class, "validateRule3")
+                .bean(ValidateRule.class, "validateRule4")
+            .end()
             .convertBodyTo(SubscriberEntity.class)
             .log("${id} ${body}")
-            .to("jpa:" + SubscriberEntity.class.getName())
+            .to("jpa:SubscriberEntity")
             .convertBodyTo(EnrollSubscriberResponse.class)
             .setHeader(Exchange.HTTP_RESPONSE_CODE, constant(HttpStatus.CREATED.value()))
             .log("${id} ${body}")
