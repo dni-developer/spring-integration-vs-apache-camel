@@ -54,6 +54,8 @@ public class SubscriberCamelRouter extends RouteBuilder {
 
 
     public void registerRoute() {
+        restConfiguration().component("platform-http");
+
         rest("/subscriber")
             .id("restSubscriber")
             .clientRequestValidation(true)
@@ -70,6 +72,7 @@ public class SubscriberCamelRouter extends RouteBuilder {
             .clientRequestValidation(true)
             .consumes(MediaType.MULTIPART_FORM_DATA_VALUE)
             .produces(MediaType.APPLICATION_JSON_VALUE)
+            .bindingMode(RestBindingMode.off)
             .post()
             .to("direct:storeUpload");
 
